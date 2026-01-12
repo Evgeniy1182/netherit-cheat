@@ -425,7 +425,6 @@ namespace NetheritInjector
                 }
             }
         }
-        }
 
         private void MainForm_Paint(object? sender, PaintEventArgs e)
         {
