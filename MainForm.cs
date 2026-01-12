@@ -17,8 +17,11 @@ namespace NetheritInjector
         private TextBox processTextBox = null!;
         private TextBox dllTextBox = null!;
         private Button injectButton = null!;
+        private Label subscriptionLabel = null!;
         private string? selectedDllPath;
         private int selectedProcessId;
+        private string? activatedKey;
+        private int subscriptionDays;
 
         // Windows API для инжекта DLL
         [DllImport("kernel32.dll")]
@@ -146,6 +149,20 @@ namespace NetheritInjector
                 BackColor = Color.Transparent
             };
             this.Controls.Add(subtitleLabel);
+
+            // Subscription info (at the top)
+            subscriptionLabel = new Label
+            {
+                Text = "Loading subscription...",
+                Font = new Font("Segoe UI Light", 10),
+                ForeColor = Color.Gray,
+                AutoSize = false,
+                Size = new Size(700, 25),
+                Location = new Point(0, 155),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+            this.Controls.Add(subscriptionLabel);
 
             // Панель для процесса
             Label processLabel = new Label

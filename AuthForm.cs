@@ -258,10 +258,21 @@ namespace NetheritInjector
         {
             string key = keyTextBox.Text.Trim();
             
-            if (key == "NETHERIT")
+            if (KeySystem.ValidateKey(key, out int durationDays))
             {
-                this.DialogResult = DialogResult.OK;
-                this.Close();
+                string durationText = KeySystem.GetDurationText(durationDays);
+                statusLabel.ForeColor = Color.FromArgb(100, 255, 100);
+                statusLabel.Text = $"✓ KEY ACCEPTED - {durationText}";
+                
+                // Небольшая задержка перед открытием MainForm
+                System.Threading.Tasks.Task.Delay(800).ContinueWith(_ => 
+                {
+                    this.Invoke((Action)(() =>
+                    {
+                        this.DialogResult = DialogResult.OK;
+                        this.Close();
+                    }));
+                });
             }
             else
             {
