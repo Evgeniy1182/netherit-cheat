@@ -20,8 +20,15 @@ namespace NetheritInjector
         private Button injectButton = null!;
         private Label subscriptionLabel = null!;
         private Label timeLeftLabel = null!;
+        private Button settingsButton = null!;
+        private Button historyButton = null!;
+        private Label processInfoLabel = null!;
+        private ProgressBar injectionProgressBar = null!;
+        private NotifyIcon? trayIcon;
+        private AppConfig config = null!;
         private string? selectedDllPath;
         private int selectedProcessId;
+        private string? selectedProcessName;
         private string? activatedKey;
         private int subscriptionDays;
 
@@ -91,8 +98,100 @@ namespace NetheritInjector
         {
             activatedKey = key;
             subscriptionDays = durationDays;
+            config = AppConfig.Load();
+            LoadLastSettings();
             UpdateSubscriptionDisplay();
             StartSubscriptionTimer();
+            InitializeTrayIcon();
+            RegisterHotKeys();
+        }
+
+        private void LoadLastSettings()
+        {
+            if (!string.IsNullOrEmpty(config.LastDllPath) && File.Exists(config.LastDllPath))
+            {
+                selectedDllPath = config.LastDllPath;
+                if (dllTextBox != null)
+                    dllTextBox.Text = Path.GetFileName(selectedDllPath);
+            }
+            UpdateInjectButtonState();
+        }
+
+        private void InitializeTrayIcon()
+        {
+            if (!config.MinimizeToTray) return;
+
+            trayIcon = new NotifyIcon
+            {
+                Text = "Netherit Injector",
+                Visible = false
+            };
+
+            // Создаем простую иконку
+            using (Bitmap bmp = new Bitmap(16, 16))
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Purple);
+                g.FillEllipse(Brushes.White, 4, 4, 8, 8);
+                trayIcon.Icon = Icon.FromHandle(bmp.GetHicon());
+            }
+
+            trayIcon.DoubleClick += (s, e) => {
+                this.Show();
+                this.WindowState = FormWindowState.Normal;
+                trayIcon.Visible = false;
+            };
+
+            var contextMenu = new ContextMenuStrip();
+            contextMenu.Items.Add("Открыть", null, (s, e) => {
+                this.Show();
+                this.WindowState = FormWindowState.Normal;
+                trayIcon.Visible = false;
+            });
+            contextMenu.Items.Add("Настройки", null, (s, e) => ShowSettings());
+            contextMenu.Items.Add("История", null, (s, e) => ShowHistory());
+            contextMenu.Items.Add("-"); // Разделитель
+            contextMenu.Items.Add("Выход", null, (s, e) => {
+                trayIcon.Visible = false;
+                Application.Exit();
+            });
+            
+            trayIcon.ContextMenuStrip = contextMenu;
+
+            // Обработка минимизации
+            this.Resize += (s, e) => {
+                if (config.MinimizeToTray && this.WindowState == FormWindowState.Minimized)
+                {
+                    this.Hide();
+                    trayIcon.Visible = true;
+                    if (config.ShowNotifications)
+                    {
+                        trayIcon.ShowBalloonTip(1000, "Netherit Injector", "Приложение свернуто в трей", ToolTipIcon.Info);
+                    }
+                }
+            };
+        }
+
+        private void RegisterHotKeys()
+        {
+            this.KeyPreview = true;
+            this.KeyDown += (s, e) => {
+                // Ctrl+I = Inject
+                if (e.Control && e.KeyCode == Keys.I && injectButton.Enabled)
+                {
+                    InjectButton_Click(null, EventArgs.Empty);
+                }
+                // Ctrl+H = History
+                else if (e.Control && e.KeyCode == Keys.H)
+                {
+                    ShowHistory();
+                }
+                // Ctrl+S = Settings  
+                else if (e.Control && e.KeyCode == Keys.S)
+                {
+                    ShowSettings();
+                }
+            };
         }
 
         private void StartSubscriptionTimer()
@@ -157,6 +256,49 @@ namespace NetheritInjector
             this.DoubleBuffered = true;
             this.Paint += MainForm_Paint;
 
+            // Кнопка закрытия (X)
+            Button closeButton = new Button
+            {
+                Text = "✕",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent,
+                Size = new Size(30, 30),
+                Location = new Point(660, 10),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            closeButton.FlatAppearance.BorderSize = 0;
+            closeButton.FlatAppearance.MouseOverBackColor = Color.Red;
+            closeButton.Click += (s, e) => {
+                if (config.MinimizeToTray && trayIcon != null)
+                {
+                    this.WindowState = FormWindowState.Minimized;
+                }
+                else
+                {
+                    Application.Exit();
+                }
+            };
+            this.Controls.Add(closeButton);
+
+            // Кнопка минимизации (_)
+            Button minimizeButton = new Button
+            {
+                Text = "─",
+                Font = new Font("Arial", 16, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent,
+                Size = new Size(30, 30),
+                Location = new Point(625, 10),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            minimizeButton.FlatAppearance.BorderSize = 0;
+            minimizeButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(50, 50, 50);
+            minimizeButton.Click += (s, e) => this.WindowState = FormWindowState.Minimized;
+            this.Controls.Add(minimizeButton);
+
             // Название
             Label titleLabel = new Label
             {
@@ -212,6 +354,54 @@ namespace NetheritInjector
                 BackColor = Color.Transparent
             };
             this.Controls.Add(timeLeftLabel);
+
+            // Settings button (top right)
+            settingsButton = new Button
+            {
+                Text = "⚙️",
+                Font = new Font("Segoe UI", 16),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent,
+                Size = new Size(40, 40),
+                Location = new Point(610, 10),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            settingsButton.FlatAppearance.BorderSize = 0;
+            settingsButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 30, 30);
+            settingsButton.Click += (s, e) => ShowSettings();
+            this.Controls.Add(settingsButton);
+
+            // History button
+            historyButton = new Button
+            {
+                Text = "📋",
+                Font = new Font("Segoe UI", 16),
+                ForeColor = Color.White,
+                BackColor = Color.Transparent,
+                Size = new Size(40, 40),
+                Location = new Point(565, 10),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            historyButton.FlatAppearance.BorderSize = 0;
+            historyButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 30, 30);
+            historyButton.Click += (s, e) => ShowHistory();
+            this.Controls.Add(historyButton);
+
+            // Process info label
+            processInfoLabel = new Label
+            {
+                Text = "",
+                Font = new Font("Segoe UI", 8),
+                ForeColor = Color.Gray,
+                AutoSize = false,
+                Size = new Size(400, 40),
+                Location = new Point(150, 240),
+                TextAlign = ContentAlignment.TopCenter,
+                BackColor = Color.Transparent
+            };
+            this.Controls.Add(processInfoLabel);
 
             // Панель для процесса
             Label processLabel = new Label
@@ -329,6 +519,44 @@ namespace NetheritInjector
             injectButton.Click += InjectButton_Click;
             this.Controls.Add(injectButton);
 
+            // Progress bar for injection
+            injectionProgressBar = new ProgressBar
+            {
+                Location = new Point(200, 545),
+                Size = new Size(300, 8),
+                Style = ProgressBarStyle.Continuous,
+                Visible = false
+            };
+            this.Controls.Add(injectionProgressBar);
+
+            // Version and credits label
+            Label versionLabel = new Label
+            {
+                Text = "v2.0.0 | Made with 💜 by Netherit Team",
+                Font = new Font("Segoe UI", 8),
+                ForeColor = Color.Gray,
+                AutoSize = false,
+                Size = new Size(700, 20),
+                Location = new Point(0, 565),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+            this.Controls.Add(versionLabel);
+
+            // Hotkeys hint
+            Label hotkeysLabel = new Label
+            {
+                Text = "Hotkeys: Ctrl+I (Inject) | Ctrl+H (History) | Ctrl+S (Settings)",
+                Font = new Font("Segoe UI", 7),
+                ForeColor = Color.DarkGray,
+                AutoSize = false,
+                Size = new Size(700, 15),
+                Location = new Point(0, 580),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+            this.Controls.Add(hotkeysLabel);
+
             // Статус
             Label statusLabel = new Label
             {
@@ -348,22 +576,6 @@ namespace NetheritInjector
             animationTimer.Interval = 16; // ~60 FPS
             animationTimer.Tick += AnimationTimer_Tick;
             animationTimer.Start();
-
-            // Custom Close Button
-            Label closeButton = new Label
-            {
-                Text = "✖",
-                Font = new Font("Segoe UI", 12, FontStyle.Regular),
-                ForeColor = Color.White,
-                BackColor = Color.Transparent,
-                AutoSize = true,
-                Cursor = Cursors.Hand,
-                Location = new Point(670, 10)
-            };
-            closeButton.Click += (s, e) => this.Close();
-            closeButton.MouseEnter += (s, e) => closeButton.ForeColor = Color.Red;
-            closeButton.MouseLeave += (s, e) => closeButton.ForeColor = Color.White;
-            this.Controls.Add(closeButton);
 
             random = new Random();
             this.ResumeLayout(false);
@@ -461,8 +673,63 @@ namespace NetheritInjector
             if (processDialog.ShowDialog() == DialogResult.OK)
             {
                 selectedProcessId = processDialog.SelectedProcessId;
-                processTextBox.Text = processDialog.SelectedProcessName ?? $"Process ID: {selectedProcessId}";
+                selectedProcessName = processDialog.SelectedProcessName;
+                processTextBox.Text = selectedProcessName ?? $"Process ID: {selectedProcessId}";
                 UpdateInjectButtonState();
+                UpdateProcessInfo();
+                
+                // Сохраняем выбор
+                if (config != null)
+                {
+                    config.LastProcessId = selectedProcessId;
+                    config.LastProcessName = selectedProcessName;
+                    config.Save();
+                }
+            }
+        }
+
+        private void UpdateProcessInfo()
+        {
+            if (!config?.ShowProcessInfo == true || selectedProcessId <= 0)
+            {
+                processInfoLabel.Text = "";
+                return;
+            }
+
+            try
+            {
+                var process = Process.GetProcessById(selectedProcessId);
+                string arch = Environment.Is64BitOperatingSystem ? "x64" : "x86";
+                string path = "";
+                try { path = process.MainModule?.FileName ?? "N/A"; } catch { path = "N/A"; }
+                
+                processInfoLabel.Text = $"PID: {selectedProcessId} | Arch: {arch}\nPath: {(path.Length > 50 ? "..." + path.Substring(path.Length - 50) : path)}";
+                processInfoLabel.ForeColor = Color.FromArgb(100, 200, 255);
+            }
+            catch
+            {
+                processInfoLabel.Text = "Process no longer exists";
+                processInfoLabel.ForeColor = Color.Red;
+            }
+        }
+
+        private void ShowSettings()
+        {
+            using (var settingsForm = new SettingsForm(config))
+            {
+                if (settingsForm.ShowDialog() == DialogResult.OK)
+                {
+                    config = AppConfig.Load();
+                    UpdateProcessInfo();
+                }
+            }
+        }
+
+        private void ShowHistory()
+        {
+            using (var historyForm = new HistoryForm())
+            {
+                historyForm.ShowDialog();
             }
         }
 
@@ -479,12 +746,48 @@ namespace NetheritInjector
                 selectedDllPath = openFileDialog.FileName;
                 dllTextBox.Text = Path.GetFileName(selectedDllPath);
                 UpdateInjectButtonState();
+                
+                // Сохраняем выбор
+                if (config != null)
+                {
+                    config.LastDllPath = selectedDllPath;
+                    config.Save();
+                }
             }
         }
 
         private void UpdateInjectButtonState()
         {
-            injectButton.Enabled = selectedProcessId > 0 && !string.IsNullOrEmpty(selectedDllPath);
+            bool canInject = selectedProcessId > 0 && !string.IsNullOrEmpty(selectedDllPath);
+            
+            // Проверяем что процесс все еще существует
+            if (canInject && selectedProcessId > 0)
+            {
+                try
+                {
+                    Process.GetProcessById(selectedProcessId);
+                }
+                catch (ArgumentException)
+                {
+                    // Процесс завершился
+                    canInject = false;
+                    processTextBox.Text = "Process not found (closed)";
+                    selectedProcessId = 0;
+                }
+            }
+            
+            // Проверяем что DLL файл существует
+            if (canInject && !string.IsNullOrEmpty(selectedDllPath))
+            {
+                if (!File.Exists(selectedDllPath))
+                {
+                    canInject = false;
+                    dllTextBox.Text = "DLL file not found";
+                    selectedDllPath = "";
+                }
+            }
+            
+            injectButton.Enabled = canInject;
         }
 
         private void InitializeSnowflakes()
@@ -543,7 +846,7 @@ namespace NetheritInjector
             }
         }
 
-        private void InjectButton_Click(object? sender, EventArgs e)
+        private async void InjectButton_Click(object? sender, EventArgs e)
         {
             // Проверяем истек ли ключ перед инъекцией
             if (activatedKey != null && KeySystem.IsKeyExpired(activatedKey))
@@ -560,7 +863,30 @@ namespace NetheritInjector
                 return;
             }
 
+            // Показываем прогресс-бар
+            injectionProgressBar.Value = 0;
+            injectionProgressBar.Visible = true;
+            injectButton.Enabled = false;
+
+            // Задержка если настроена
+            if (config.InjectionDelay > 0)
+            {
+                for (int i = 0; i <= 100; i += 10)
+                {
+                    injectionProgressBar.Value = i / 4; // 0-25%
+                    await System.Threading.Tasks.Task.Delay(config.InjectionDelay / 10);
+                }
+            }
+
+            injectionProgressBar.Value = 30;
+            await System.Threading.Tasks.Task.Delay(50);
+
             InjectDLL(selectedProcessId, selectedDllPath);
+            
+            injectionProgressBar.Value = 100;
+            await System.Threading.Tasks.Task.Delay(500);
+            injectionProgressBar.Visible = false;
+            injectButton.Enabled = true;
         }
 
         private void InjectDLL(int processId, string dllPath)
@@ -568,41 +894,67 @@ namespace NetheritInjector
             IntPtr hProcess = IntPtr.Zero;
             IntPtr allocMemAddress = IntPtr.Zero;
             IntPtr hThread = IntPtr.Zero;
+            bool success = false;
+            string errorMessage = "";
 
             try
             {
+                // Прогресс: 35%
+                injectionProgressBar.Value = 35;
+                
                 // Проверяем существование файла
                 if (!File.Exists(dllPath))
                 {
-                    MessageBox.Show($"DLL file not found:\n{dllPath}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    errorMessage = $"DLL file not found:\n{dllPath}";
+                    MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (config.SaveInjectionHistory)
+                        InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, "DLL file not found");
                     return;
                 }
 
+                // Прогресс: 40%
+                injectionProgressBar.Value = 40;
+                
                 // Открываем процесс
                 hProcess = OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, false, processId);
 
                 if (hProcess == IntPtr.Zero)
                 {
                     int error = Marshal.GetLastWin32Error();
+                    errorMessage = $"Failed to open process. Error: {error}";
                     MessageBox.Show($"Failed to open process.\nError code: {error}\n\nMake sure you run the injector as Administrator!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (config.SaveInjectionHistory)
+                        InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
                     return;
                 }
 
+                // Прогресс: 50%
+                injectionProgressBar.Value = 50;
+                
                 // Получаем адрес LoadLibraryW (используем Unicode версию)
                 IntPtr hKernel32 = GetModuleHandle("kernel32.dll");
                 if (hKernel32 == IntPtr.Zero)
                 {
-                    MessageBox.Show("Failed to get kernel32.dll handle.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    errorMessage = "Failed to get kernel32.dll handle";
+                    MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (config.SaveInjectionHistory)
+                        InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
                     return;
                 }
 
                 IntPtr loadLibraryAddr = GetProcAddress(hKernel32, "LoadLibraryW");
                 if (loadLibraryAddr == IntPtr.Zero)
                 {
-                    MessageBox.Show("Failed to find LoadLibraryW.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    errorMessage = "Failed to find LoadLibraryW";
+                    MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (config.SaveInjectionHistory)
+                        InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
                     return;
                 }
 
+                // Прогресс: 60%
+                injectionProgressBar.Value = 60;
+                
                 // Конвертируем путь в Unicode с нулевым терминатором
                 byte[] dllPathBytes = System.Text.Encoding.Unicode.GetBytes(dllPath + "\0");
                 uint size = (uint)dllPathBytes.Length;
@@ -613,28 +965,46 @@ namespace NetheritInjector
                 if (allocMemAddress == IntPtr.Zero)
                 {
                     int error = Marshal.GetLastWin32Error();
+                    errorMessage = $"Failed to allocate memory. Error: {error}";
                     MessageBox.Show($"Failed to allocate memory in target process.\nError code: {error}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (config.SaveInjectionHistory)
+                        InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
                     return;
                 }
 
+                // Прогресс: 70%
+                injectionProgressBar.Value = 70;
+                
                 // Записываем путь к DLL в память процесса
                 if (!WriteProcessMemory(hProcess, allocMemAddress, dllPathBytes, size, out UIntPtr bytesWritten))
                 {
                     int error = Marshal.GetLastWin32Error();
+                    errorMessage = $"Failed to write memory. Error: {error}";
                     MessageBox.Show($"Failed to write to process memory.\nError code: {error}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (config.SaveInjectionHistory)
+                        InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
                     return;
                 }
 
+                // Прогресс: 80%
+                injectionProgressBar.Value = 80;
+                
                 // Создаем удаленный поток для загрузки DLL
                 hThread = CreateRemoteThread(hProcess, IntPtr.Zero, 0, loadLibraryAddr, allocMemAddress, 0, IntPtr.Zero);
 
                 if (hThread == IntPtr.Zero)
                 {
                     int error = Marshal.GetLastWin32Error();
+                    errorMessage = $"Failed to create thread. Error: {error}";
                     MessageBox.Show($"Failed to create remote thread.\nError code: {error}\n\nPossible reasons:\n- Target process architecture mismatch (32-bit vs 64-bit)\n- Antivirus blocking\n- Process protection", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (config.SaveInjectionHistory)
+                        InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
                     return;
                 }
 
+                // Прогресс: 90%
+                injectionProgressBar.Value = 90;
+                
                 // Ждем завершения потока (максимум 5 секунд)
                 uint waitResult = WaitForSingleObject(hThread, 5000);
 
@@ -645,26 +1015,47 @@ namespace NetheritInjector
                     {
                         if (exitCode == 0)
                         {
+                            errorMessage = "LoadLibrary returned NULL";
                             MessageBox.Show("LoadLibrary returned NULL.\n\nPossible reasons:\n- Invalid DLL file\n- Missing dependencies\n- DLL not compatible with target process\n- Path contains non-ASCII characters", "Injection Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            if (config.SaveInjectionHistory)
+                                InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
                         }
                         else
                         {
+                            success = true;
                             MessageBox.Show($"✓ DLL successfully injected!\n\nModule handle: 0x{exitCode:X}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            if (config.SaveInjectionHistory)
+                                InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, true, $"Success (Handle: 0x{exitCode:X})");
+                            
+                            // Показываем уведомление если включено
+                            if (config.ShowNotifications)
+                            {
+                                ShowNotification("Injection Successful", $"DLL injected into {selectedProcessName ?? processId.ToString()}");
+                            }
                         }
                     }
                     else
                     {
+                        errorMessage = "Couldn't get exit code";
                         MessageBox.Show("Thread completed but couldn't get exit code.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        if (config.SaveInjectionHistory)
+                            InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
                     }
                 }
                 else
                 {
+                    errorMessage = "Thread timeout or failed";
                     MessageBox.Show("Thread execution timeout or failed.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (config.SaveInjectionHistory)
+                        InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
                 }
             }
             catch (Exception ex)
             {
+                errorMessage = $"Exception: {ex.Message}";
                 MessageBox.Show($"Exception during DLL injection:\n{ex.Message}\n\nStack trace:\n{ex.StackTrace}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (config.SaveInjectionHistory)
+                    InjectionHistory.LogInjection(selectedProcessName ?? processId.ToString(), processId, dllPath, false, errorMessage);
             }
             finally
             {
@@ -677,6 +1068,15 @@ namespace NetheritInjector
 
                 if (hProcess != IntPtr.Zero)
                     CloseHandle(hProcess);
+            }
+        }
+
+        private void ShowNotification(string title, string message)
+        {
+            // Простое уведомление через иконку в трее
+            if (trayIcon != null)
+            {
+                trayIcon.ShowBalloonTip(3000, title, message, ToolTipIcon.Info);
             }
         }
     }
