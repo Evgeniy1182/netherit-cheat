@@ -16,6 +16,9 @@ namespace NetheritInjector
         private Button loginButton = null!;
         private Label statusLabel = null!;
 
+        public string? ValidatedKey { get; private set; }
+        public int SubscriptionDays { get; private set; }
+
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn(
             int nLeftRect,
@@ -260,6 +263,9 @@ namespace NetheritInjector
             
             if (KeySystem.ValidateKey(key, out int durationDays))
             {
+                ValidatedKey = key;
+                SubscriptionDays = durationDays;
+                
                 string durationText = KeySystem.GetDurationText(durationDays);
                 statusLabel.ForeColor = Color.FromArgb(100, 255, 100);
                 statusLabel.Text = $"✓ KEY ACCEPTED - {durationText}";

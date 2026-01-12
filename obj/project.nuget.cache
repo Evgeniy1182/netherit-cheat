@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "yvA6nvGu1OY=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Own\\Desktop\\dll\\netherit-cheat\\NetheritInjector.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Own\\.nuget\\packages\\system.codedom\\8.0.0\\system.codedom.8.0.0.nupkg.sha512",
+    "C:\\Users\\Own\\.nuget\\packages\\system.management\\8.0.0\\system.management.8.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

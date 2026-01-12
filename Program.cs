@@ -16,8 +16,12 @@ namespace NetheritInjector
             {
                 if (authForm.ShowDialog() == DialogResult.OK)
                 {
-                    // Если ключ верный, запускаем основную форму
-                    Application.Run(new MainForm());
+                    // Получаем данные о подписке из формы авторизации
+                    string? key = authForm.ValidatedKey;
+                    int durationDays = authForm.SubscriptionDays;
+                    
+                    // Если ключ верный, запускаем основную форму с данными подписки
+                    Application.Run(new MainForm(key ?? "UNKNOWN", durationDays));
                 }
             }
         }

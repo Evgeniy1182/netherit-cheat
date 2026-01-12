@@ -1,0 +1,4 @@
+C:\Users\Женя\Desktop\test\obj\Debug\net6.0-windows\NetheritInjector.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Женя\Desktop\test\obj\Debug\net6.0-windows\NetheritInjector.AssemblyInfoInputs.cache
+C:\Users\Женя\Desktop\test\obj\Debug\net6.0-windows\NetheritInjector.AssemblyInfo.cs
+C:\Users\Женя\Desktop\test\obj\Debug\net6.0-windows\NetheritInjector.csproj.CoreCompileInputs.cache

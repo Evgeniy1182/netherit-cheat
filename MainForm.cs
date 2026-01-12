@@ -85,6 +85,13 @@ namespace NetheritInjector
             this.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 25, 25));
         }
 
+        public MainForm(string key, int durationDays) : this()
+        {
+            activatedKey = key;
+            subscriptionDays = durationDays;
+            UpdateSubscriptionDisplay();
+        }
+
         private void CheckAdminRights()
         {
             try
@@ -318,6 +325,27 @@ namespace NetheritInjector
 
             random = new Random();
             this.ResumeLayout(false);
+        }
+
+        private void UpdateSubscriptionDisplay()
+        {
+            if (subscriptionLabel == null) return;
+
+            if (subscriptionDays == -1)
+            {
+                subscriptionLabel.Text = "🔑 Subscription: LIFETIME";
+                subscriptionLabel.ForeColor = Color.FromArgb(100, 255, 100);
+            }
+            else if (subscriptionDays > 0)
+            {
+                subscriptionLabel.Text = $"🔑 Subscription: {subscriptionDays} days remaining";
+                subscriptionLabel.ForeColor = subscriptionDays <= 7 ? Color.Orange : Color.FromArgb(100, 255, 100);
+            }
+            else
+            {
+                subscriptionLabel.Text = "❌ Subscription expired";
+                subscriptionLabel.ForeColor = Color.Red;
+            }
         }
 
         private void MainForm_Paint(object? sender, PaintEventArgs e)
