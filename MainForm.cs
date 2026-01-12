@@ -259,17 +259,19 @@ namespace NetheritInjector
             // Кнопка закрытия (X)
             Button closeButton = new Button
             {
-                Text = "✕",
-                Font = new Font("Arial", 16, FontStyle.Bold),
-                ForeColor = Color.White,
+                Text = "×",
+                Font = new Font("Arial", 22, FontStyle.Bold),
+                ForeColor = Color.LightGray,
                 BackColor = Color.Transparent,
-                Size = new Size(30, 30),
-                Location = new Point(660, 10),
+                Size = new Size(45, 45),
+                Location = new Point(645, 3),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
             closeButton.FlatAppearance.BorderSize = 0;
-            closeButton.FlatAppearance.MouseOverBackColor = Color.Red;
+            closeButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(80, 0, 0);
+            closeButton.MouseEnter += (s, e) => closeButton.ForeColor = Color.Red;
+            closeButton.MouseLeave += (s, e) => closeButton.ForeColor = Color.LightGray;
             closeButton.Click += (s, e) => {
                 if (config.MinimizeToTray && trayIcon != null)
                 {
@@ -280,23 +282,29 @@ namespace NetheritInjector
                     Application.Exit();
                 }
             };
+            var closeToolTip = new ToolTip();
+            closeToolTip.SetToolTip(closeButton, "Close");
             this.Controls.Add(closeButton);
 
             // Кнопка минимизации (_)
             Button minimizeButton = new Button
             {
-                Text = "─",
-                Font = new Font("Arial", 16, FontStyle.Bold),
-                ForeColor = Color.White,
+                Text = "—",
+                Font = new Font("Arial", 18, FontStyle.Bold),
+                ForeColor = Color.LightGray,
                 BackColor = Color.Transparent,
-                Size = new Size(30, 30),
-                Location = new Point(625, 10),
+                Size = new Size(45, 45),
+                Location = new Point(595, 3),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
             minimizeButton.FlatAppearance.BorderSize = 0;
-            minimizeButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(50, 50, 50);
+            minimizeButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(40, 40, 40);
+            minimizeButton.MouseEnter += (s, e) => minimizeButton.ForeColor = Color.White;
+            minimizeButton.MouseLeave += (s, e) => minimizeButton.ForeColor = Color.LightGray;
             minimizeButton.Click += (s, e) => this.WindowState = FormWindowState.Minimized;
+            var minimizeToolTip = new ToolTip();
+            minimizeToolTip.SetToolTip(minimizeButton, "Minimize");
             this.Controls.Add(minimizeButton);
 
             // Название
@@ -358,35 +366,43 @@ namespace NetheritInjector
             // Settings button (top right)
             settingsButton = new Button
             {
-                Text = "⚙️",
-                Font = new Font("Segoe UI", 16),
-                ForeColor = Color.White,
+                Text = "⚙",
+                Font = new Font("Segoe UI Symbol", 20, FontStyle.Bold),
+                ForeColor = Color.LightGray,
                 BackColor = Color.Transparent,
-                Size = new Size(40, 40),
-                Location = new Point(610, 10),
+                Size = new Size(45, 45),
+                Location = new Point(585, 8),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
             settingsButton.FlatAppearance.BorderSize = 0;
-            settingsButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 30, 30);
+            settingsButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(40, 40, 40);
+            settingsButton.MouseEnter += (s, e) => settingsButton.ForeColor = Color.MediumOrchid;
+            settingsButton.MouseLeave += (s, e) => settingsButton.ForeColor = Color.LightGray;
             settingsButton.Click += (s, e) => ShowSettings();
+            var settingsToolTip = new ToolTip();
+            settingsToolTip.SetToolTip(settingsButton, "Settings (Ctrl+S)");
             this.Controls.Add(settingsButton);
 
             // History button
             historyButton = new Button
             {
-                Text = "📋",
-                Font = new Font("Segoe UI", 16),
-                ForeColor = Color.White,
+                Text = "H",
+                Font = new Font("Consolas", 18, FontStyle.Bold),
+                ForeColor = Color.LightGray,
                 BackColor = Color.Transparent,
-                Size = new Size(40, 40),
-                Location = new Point(565, 10),
+                Size = new Size(45, 45),
+                Location = new Point(535, 8),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
             historyButton.FlatAppearance.BorderSize = 0;
-            historyButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(30, 30, 30);
+            historyButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(40, 40, 40);
+            historyButton.MouseEnter += (s, e) => historyButton.ForeColor = Color.MediumOrchid;
+            historyButton.MouseLeave += (s, e) => historyButton.ForeColor = Color.LightGray;
             historyButton.Click += (s, e) => ShowHistory();
+            var historyToolTip = new ToolTip();
+            historyToolTip.SetToolTip(historyButton, "History (Ctrl+H)");
             this.Controls.Add(historyButton);
 
             // Process info label
@@ -532,12 +548,12 @@ namespace NetheritInjector
             // Version and credits label
             Label versionLabel = new Label
             {
-                Text = "v2.0.0 | Made with 💜 by Netherit Team",
+                Text = "v2.0.0 | Made with ♥ by Netherit Team",
                 Font = new Font("Segoe UI", 8),
                 ForeColor = Color.Gray,
                 AutoSize = false,
                 Size = new Size(700, 20),
-                Location = new Point(0, 565),
+                Location = new Point(0, 555),
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent
             };
@@ -551,7 +567,7 @@ namespace NetheritInjector
                 ForeColor = Color.DarkGray,
                 AutoSize = false,
                 Size = new Size(700, 15),
-                Location = new Point(0, 580),
+                Location = new Point(0, 572),
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent
             };
