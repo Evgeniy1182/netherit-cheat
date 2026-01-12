@@ -259,12 +259,12 @@ namespace NetheritInjector
             // Кнопка закрытия (X)
             Button closeButton = new Button
             {
-                Text = "×",
-                Font = new Font("Arial", 22, FontStyle.Bold),
+                Text = "X",
+                Font = new Font("Arial", 16, FontStyle.Bold),
                 ForeColor = Color.LightGray,
                 BackColor = Color.Transparent,
-                Size = new Size(45, 45),
-                Location = new Point(645, 3),
+                Size = new Size(40, 40),
+                Location = new Point(650, 10),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
@@ -289,12 +289,12 @@ namespace NetheritInjector
             // Кнопка минимизации (_)
             Button minimizeButton = new Button
             {
-                Text = "—",
-                Font = new Font("Arial", 18, FontStyle.Bold),
+                Text = "_",
+                Font = new Font("Arial", 20, FontStyle.Bold),
                 ForeColor = Color.LightGray,
                 BackColor = Color.Transparent,
-                Size = new Size(45, 45),
-                Location = new Point(595, 3),
+                Size = new Size(40, 40),
+                Location = new Point(605, 5),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
@@ -366,12 +366,12 @@ namespace NetheritInjector
             // Settings button (top right)
             settingsButton = new Button
             {
-                Text = "⚙",
-                Font = new Font("Segoe UI Symbol", 20, FontStyle.Bold),
+                Text = "S",
+                Font = new Font("Consolas", 18, FontStyle.Bold),
                 ForeColor = Color.LightGray,
                 BackColor = Color.Transparent,
-                Size = new Size(45, 45),
-                Location = new Point(585, 8),
+                Size = new Size(40, 40),
+                Location = new Point(560, 10),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
@@ -391,8 +391,8 @@ namespace NetheritInjector
                 Font = new Font("Consolas", 18, FontStyle.Bold),
                 ForeColor = Color.LightGray,
                 BackColor = Color.Transparent,
-                Size = new Size(45, 45),
-                Location = new Point(535, 8),
+                Size = new Size(40, 40),
+                Location = new Point(515, 10),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };

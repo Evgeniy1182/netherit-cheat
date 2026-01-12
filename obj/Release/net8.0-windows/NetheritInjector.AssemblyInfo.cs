@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("NetheritInjector")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+48dd13492a94c64fc7f210a667a97f2565fabca8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+95399d1901f1e73d5ab48b8b16a17d3cc8a4eb1d")]
 [assembly: System.Reflection.AssemblyProductAttribute("NetheritInjector")]
 [assembly: System.Reflection.AssemblyTitleAttribute("NetheritInjector")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
