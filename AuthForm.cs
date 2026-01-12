@@ -263,22 +263,63 @@ namespace NetheritInjector
             
             if (KeySystem.ValidateKey(key, out int durationDays))
             {
-                ValidatedKey = key;
-                SubscriptionDays = durationDays;
-                
-                string durationText = KeySystem.GetDurationText(durationDays);
-                statusLabel.ForeColor = Color.FromArgb(100, 255, 100);
-                statusLabel.Text = $"✓ KEY ACCEPTED - {durationText}";
-                
-                // Небольшая задержка перед открытием MainForm
-                System.Threading.Tasks.Task.Delay(800).ContinueWith(_ => 
+                // Пытаемся активировать ключ
+                if (KeySystem.ActivateKey(key, out string message))
                 {
-                    this.Invoke((Action)(() =>
+                    ValidatedKey = key;
+                    SubscriptionDays = durationDays;
+                    
+                    string durationText = KeySystem.GetDurationText(durationDays);
+                    statusLabel.ForeColor = Color.FromArgb(100, 255, 100);
+                    statusLabel.Text = $"✓ KEY ACTIVATED - {durationText}";
+                    
+                    // Небольшая задержка перед открытием MainForm
+                    System.Threading.Tasks.Task.Delay(800).ContinueWith(_ => 
                     {
-                        this.DialogResult = DialogResult.OK;
-                        this.Close();
-                    }));
-                });
+                        this.Invoke((Action)(() =>
+                        {
+                            this.DialogResult = DialogResult.OK;
+                            this.Close();
+                        }));
+                    });
+                }
+                else if (KeySystem.IsKeyExpired(key))
+                {
+                    statusLabel.ForeColor = Color.FromArgb(255, 80, 80);
+                    statusLabel.Text = "❌ KEY EXPIRED";
+                    keyTextBox.BackColor = Color.FromArgb(60, 20, 20);
+                    ShakeWindow();
+                }
+                else
+                {
+                    // Ключ уже активирован, проверяем не истек ли
+                    long timeLeft = KeySystem.GetKeyTimeLeft(key);
+                    if (timeLeft > 0)
+                    {
+                        ValidatedKey = key;
+                        SubscriptionDays = durationDays;
+                        
+                        string timeText = KeySystem.FormatTimeLeft(timeLeft);
+                        statusLabel.ForeColor = Color.FromArgb(100, 255, 100);
+                        statusLabel.Text = $"✓ KEY ACCEPTED - {timeText} left";
+                        
+                        System.Threading.Tasks.Task.Delay(800).ContinueWith(_ => 
+                        {
+                            this.Invoke((Action)(() =>
+                            {
+                                this.DialogResult = DialogResult.OK;
+                                this.Close();
+                            }));
+                        });
+                    }
+                    else
+                    {
+                        statusLabel.ForeColor = Color.FromArgb(255, 80, 80);
+                        statusLabel.Text = "❌ KEY EXPIRED";
+                        keyTextBox.BackColor = Color.FromArgb(60, 20, 20);
+                        ShakeWindow();
+                    }
+                }
             }
             else
             {

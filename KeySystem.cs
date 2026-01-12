@@ -2,12 +2,25 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 using System.Linq;
+using System.IO;
 
 namespace NetheritInjector
 {
     public static class KeySystem
     {
         private const string SECRET = "NETHERIT_2026_SECRET_KEY";
+        private static readonly string KeyDataFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "NetheritInjector",
+            "keydata.dat"
+        );
+
+        public class KeyActivationData
+        {
+            public long ActivatedAt { get; set; }
+            public long ExpiresAt { get; set; }
+            public int Duration { get; set; }
+        }
         
         // Проверка валидности ключа и получение срока
         public static bool ValidateKey(string key, out int durationDays)
@@ -42,6 +55,174 @@ namespace NetheritInjector
             string expectedChecksum = CalculateChecksum(durationCode + data);
             
             return checksum == expectedChecksum;
+        }
+
+        // Активировать ключ и сохранить информацию
+        public static bool ActivateKey(string key, out string message)
+        {
+            message = "";
+
+            if (!ValidateKey(key, out int durationDays))
+            {
+                message = "Неверный ключ";
+                return false;
+            }
+
+            // Проверяем, не активирован ли уже ключ
+            var existingData = GetKeyActivationData(key);
+            if (existingData != null)
+            {
+                if (IsKeyExpired(key))
+                {
+                    message = "Ключ истек";
+                    return false;
+                }
+                message = "Ключ уже активирован";
+                return false;
+            }
+
+            long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            long expiresAt;
+
+            if (durationDays == -1)
+            {
+                // Lifetime - 100 лет
+                expiresAt = now + (100L * 365 * 24 * 60 * 60 * 1000);
+            }
+            else
+            {
+                expiresAt = now + (durationDays * 24L * 60 * 60 * 1000);
+            }
+
+            var activationData = new KeyActivationData
+            {
+                ActivatedAt = now,
+                ExpiresAt = expiresAt,
+                Duration = durationDays
+            };
+
+            SaveKeyActivationData(key, activationData);
+            message = "Ключ успешно активирован";
+            return true;
+        }
+
+        // Проверить истек ли активированный ключ
+        public static bool IsKeyExpired(string key)
+        {
+            var data = GetKeyActivationData(key);
+            if (data == null)
+                return true;
+
+            long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            return now >= data.ExpiresAt;
+        }
+
+        // Получить оставшееся время в миллисекундах
+        public static long GetKeyTimeLeft(string key)
+        {
+            var data = GetKeyActivationData(key);
+            if (data == null)
+                return 0;
+
+            long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            long timeLeft = data.ExpiresAt - now;
+            return timeLeft > 0 ? timeLeft : 0;
+        }
+
+        // Форматировать оставшееся время
+        public static string FormatTimeLeft(long milliseconds)
+        {
+            if (milliseconds <= 0)
+                return "Истек";
+
+            long seconds = milliseconds / 1000;
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
+
+            if (days > 365)
+                return "Навсегда";
+
+            long displayDays = days;
+            long displayHours = hours % 24;
+            long displayMinutes = minutes % 60;
+            long displaySeconds = seconds % 60;
+
+            if (days > 0)
+                return $"{displayDays}д {displayHours}ч {displayMinutes}м {displaySeconds}с";
+            else if (hours > 0)
+                return $"{displayHours}ч {displayMinutes}м {displaySeconds}с";
+            else if (minutes > 0)
+                return $"{displayMinutes}м {displaySeconds}с";
+            else
+                return $"{displaySeconds}с";
+        }
+
+        // Сохранить данные активации ключа
+        private static void SaveKeyActivationData(string key, KeyActivationData data)
+        {
+            try
+            {
+                string dir = Path.GetDirectoryName(KeyDataFile)!;
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+
+                string line = $"{key}|{data.ActivatedAt}|{data.ExpiresAt}|{data.Duration}";
+                File.AppendAllText(KeyDataFile, line + Environment.NewLine);
+            }
+            catch { }
+        }
+
+        // Получить данные активации ключа
+        private static KeyActivationData? GetKeyActivationData(string key)
+        {
+            try
+            {
+                if (!File.Exists(KeyDataFile))
+                    return null;
+
+                var lines = File.ReadAllLines(KeyDataFile);
+                foreach (var line in lines)
+                {
+                    var parts = line.Split('|');
+                    if (parts.Length == 4 && parts[0] == key)
+                    {
+                        return new KeyActivationData
+                        {
+                            ActivatedAt = long.Parse(parts[1]),
+                            ExpiresAt = long.Parse(parts[2]),
+                            Duration = int.Parse(parts[3])
+                        };
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        // Очистить истекшие ключи
+        public static void CleanupExpiredKeys()
+        {
+            try
+            {
+                if (!File.Exists(KeyDataFile))
+                    return;
+
+                long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                var lines = File.ReadAllLines(KeyDataFile);
+                var validLines = lines.Where(line =>
+                {
+                    var parts = line.Split('|');
+                    if (parts.Length != 4)
+                        return false;
+
+                    long expiresAt = long.Parse(parts[2]);
+                    return expiresAt > now;
+                }).ToArray();
+
+                File.WriteAllLines(KeyDataFile, validLines);
+            }
+            catch { }
         }
         
         // Генерация нового ключа с указанным сроком

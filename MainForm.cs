@@ -13,11 +13,13 @@ namespace NetheritInjector
     {
         private List<Snowflake> snowflakes = null!;
         private System.Windows.Forms.Timer animationTimer = null!;
+        private System.Windows.Forms.Timer subscriptionTimer = null!;
         private Random random = null!;
         private TextBox processTextBox = null!;
         private TextBox dllTextBox = null!;
         private Button injectButton = null!;
         private Label subscriptionLabel = null!;
+        private Label timeLeftLabel = null!;
         private string? selectedDllPath;
         private int selectedProcessId;
         private string? activatedKey;
@@ -90,6 +92,32 @@ namespace NetheritInjector
             activatedKey = key;
             subscriptionDays = durationDays;
             UpdateSubscriptionDisplay();
+            StartSubscriptionTimer();
+        }
+
+        private void StartSubscriptionTimer()
+        {
+            subscriptionTimer = new System.Windows.Forms.Timer();
+            subscriptionTimer.Interval = 1000; // Обновляем каждую секунду
+            subscriptionTimer.Tick += SubscriptionTimer_Tick;
+            subscriptionTimer.Start();
+        }
+
+        private void SubscriptionTimer_Tick(object? sender, EventArgs e)
+        {
+            if (activatedKey == null) return;
+
+            // Проверяем истек ли ключ
+            if (KeySystem.IsKeyExpired(activatedKey))
+            {
+                subscriptionTimer?.Stop();
+                MessageBox.Show("⏰ Ваша подписка истекла!\n\nПожалуйста, активируйте новый ключ.", 
+                    "Подписка истекла", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                this.Close();
+                return;
+            }
+
+            UpdateSubscriptionDisplay();
         }
 
         private void CheckAdminRights()
@@ -161,8 +189,8 @@ namespace NetheritInjector
             subscriptionLabel = new Label
             {
                 Text = "Loading subscription...",
-                Font = new Font("Segoe UI Light", 10),
-                ForeColor = Color.Gray,
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = Color.MediumOrchid,
                 AutoSize = false,
                 Size = new Size(700, 25),
                 Location = new Point(0, 155),
@@ -170,6 +198,20 @@ namespace NetheritInjector
                 BackColor = Color.Transparent
             };
             this.Controls.Add(subscriptionLabel);
+
+            // Time left label
+            timeLeftLabel = new Label
+            {
+                Text = "",
+                Font = new Font("Segoe UI Light", 10),
+                ForeColor = Color.Gray,
+                AutoSize = false,
+                Size = new Size(700, 25),
+                Location = new Point(0, 175),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+            this.Controls.Add(timeLeftLabel);
 
             // Панель для процесса
             Label processLabel = new Label
@@ -179,7 +221,7 @@ namespace NetheritInjector
                 ForeColor = Color.Gray,
                 AutoSize = false,
                 Size = new Size(700, 20),
-                Location = new Point(0, 180),
+                Location = new Point(0, 205),
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent
             };
@@ -189,7 +231,7 @@ namespace NetheritInjector
             {
                 Font = new Font("Segoe UI Light", 16),
                 Size = new Size(400, 35),
-                Location = new Point(150, 205),
+                Location = new Point(150, 230),
                 ReadOnly = true,
                 BackColor = Color.FromArgb(18, 18, 18),
                 ForeColor = Color.White,
@@ -199,7 +241,7 @@ namespace NetheritInjector
             };
             this.Controls.Add(processTextBox);
 
-            Panel procLine = new Panel { Size = new Size(400, 1), Location = new Point(150, 240), BackColor = Color.FromArgb(60, 60, 60) };
+            Panel procLine = new Panel { Size = new Size(400, 1), Location = new Point(150, 265), BackColor = Color.FromArgb(60, 60, 60) };
             this.Controls.Add(procLine);
 
             Button selectProcessButton = new Button
@@ -209,7 +251,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(160, 30),
-                Location = new Point(270, 250),
+                Location = new Point(270, 275),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
@@ -227,7 +269,7 @@ namespace NetheritInjector
                 ForeColor = Color.Gray,
                 AutoSize = false,
                 Size = new Size(700, 20),
-                Location = new Point(0, 310),
+                Location = new Point(0, 335),
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent
             };
@@ -237,7 +279,7 @@ namespace NetheritInjector
             {
                 Font = new Font("Segoe UI Light", 16),
                 Size = new Size(400, 35),
-                Location = new Point(150, 335),
+                Location = new Point(150, 360),
                 ReadOnly = true,
                 BackColor = Color.FromArgb(18, 18, 18),
                 ForeColor = Color.White,
@@ -247,7 +289,7 @@ namespace NetheritInjector
             };
             this.Controls.Add(dllTextBox);
 
-            Panel dllLine = new Panel { Size = new Size(400, 1), Location = new Point(150, 370), BackColor = Color.FromArgb(60, 60, 60) };
+            Panel dllLine = new Panel { Size = new Size(400, 1), Location = new Point(150, 395), BackColor = Color.FromArgb(60, 60, 60) };
             this.Controls.Add(dllLine);
 
             Button browseDllButton = new Button
@@ -257,7 +299,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(160, 30),
-                Location = new Point(270, 380),
+                Location = new Point(270, 405),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
@@ -275,7 +317,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(200, 50),
-                Location = new Point(250, 460),
+                Location = new Point(250, 485),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
                 Enabled = false
@@ -329,23 +371,60 @@ namespace NetheritInjector
 
         private void UpdateSubscriptionDisplay()
         {
-            if (subscriptionLabel == null) return;
+            if (subscriptionLabel == null || timeLeftLabel == null) return;
+
+            if (activatedKey == null)
+            {
+                subscriptionLabel.Text = "🔑 No active subscription";
+                subscriptionLabel.ForeColor = Color.Gray;
+                timeLeftLabel.Text = "";
+                return;
+            }
+
+            long timeLeft = KeySystem.GetKeyTimeLeft(activatedKey);
+            
+            if (timeLeft <= 0)
+            {
+                subscriptionLabel.Text = "❌ Subscription expired";
+                subscriptionLabel.ForeColor = Color.Red;
+                timeLeftLabel.Text = "";
+                return;
+            }
+
+            string timeText = KeySystem.FormatTimeLeft(timeLeft);
 
             if (subscriptionDays == -1)
             {
                 subscriptionLabel.Text = "🔑 Subscription: LIFETIME";
                 subscriptionLabel.ForeColor = Color.FromArgb(100, 255, 100);
-            }
-            else if (subscriptionDays > 0)
-            {
-                subscriptionLabel.Text = $"🔑 Subscription: {subscriptionDays} days remaining";
-                subscriptionLabel.ForeColor = subscriptionDays <= 7 ? Color.Orange : Color.FromArgb(100, 255, 100);
+                timeLeftLabel.Text = "∞ Бессрочная подписка";
+                timeLeftLabel.ForeColor = Color.FromArgb(100, 255, 100);
             }
             else
             {
-                subscriptionLabel.Text = "❌ Subscription expired";
-                subscriptionLabel.ForeColor = Color.Red;
+                long seconds = timeLeft / 1000;
+                long hours = seconds / 3600;
+                
+                subscriptionLabel.Text = $"🔑 Active Subscription";
+                timeLeftLabel.Text = $"⏰ {timeText} remaining";
+                
+                if (hours < 24)
+                {
+                    subscriptionLabel.ForeColor = Color.Orange;
+                    timeLeftLabel.ForeColor = Color.Orange;
+                }
+                else if (hours < 168) // < 7 days
+                {
+                    subscriptionLabel.ForeColor = Color.Yellow;
+                    timeLeftLabel.ForeColor = Color.Yellow;
+                }
+                else
+                {
+                    subscriptionLabel.ForeColor = Color.FromArgb(100, 255, 100);
+                    timeLeftLabel.ForeColor = Color.FromArgb(150, 150, 150);
+                }
             }
+        }
         }
 
         private void MainForm_Paint(object? sender, PaintEventArgs e)
@@ -467,6 +546,15 @@ namespace NetheritInjector
 
         private void InjectButton_Click(object? sender, EventArgs e)
         {
+            // Проверяем истек ли ключ перед инъекцией
+            if (activatedKey != null && KeySystem.IsKeyExpired(activatedKey))
+            {
+                MessageBox.Show("⏰ Ваша подписка истекла!\n\nПожалуйста, активируйте новый ключ для продолжения.", 
+                    "Подписка истекла", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                this.Close();
+                return;
+            }
+
             if (string.IsNullOrEmpty(selectedDllPath) || selectedProcessId <= 0)
             {
                 MessageBox.Show("Please select both a process and DLL file first.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
