@@ -1,15 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "vcx0tsGTjho=",
+  "dgSpecHash": "yvA6nvGu1OY=",
   "success": true,
-  "projectFilePath": "/home/runner/work/netherit-cheat/netherit-cheat/NetheritInjector.csproj",
+  "projectFilePath": "C:\\Users\\Own\\Desktop\\dll\\netherit-cheat\\NetheritInjector.csproj",
   "expectedPackageFiles": [
-    "/home/runner/work/netherit-cheat/.codeql-scratch/dbs/csharp/working/packages/system.codedom/8.0.0/system.codedom.8.0.0.nupkg.sha512",
-    "/home/runner/work/netherit-cheat/.codeql-scratch/dbs/csharp/working/packages/system.management/8.0.0/system.management.8.0.0.nupkg.sha512",
-    "/home/runner/work/netherit-cheat/.codeql-scratch/dbs/csharp/working/packages/microsoft.netcore.app.ref/8.0.22/microsoft.netcore.app.ref.8.0.22.nupkg.sha512",
-    "/home/runner/work/netherit-cheat/.codeql-scratch/dbs/csharp/working/packages/microsoft.windowsdesktop.app.ref/8.0.22/microsoft.windowsdesktop.app.ref.8.0.22.nupkg.sha512",
-    "/home/runner/work/netherit-cheat/.codeql-scratch/dbs/csharp/working/packages/microsoft.aspnetcore.app.ref/8.0.22/microsoft.aspnetcore.app.ref.8.0.22.nupkg.sha512",
-    "/home/runner/work/netherit-cheat/.codeql-scratch/dbs/csharp/working/packages/microsoft.netcore.app.host.linux-x64/8.0.22/microsoft.netcore.app.host.linux-x64.8.0.22.nupkg.sha512"
+    "C:\\Users\\Own\\.nuget\\packages\\system.codedom\\8.0.0\\system.codedom.8.0.0.nupkg.sha512",
+    "C:\\Users\\Own\\.nuget\\packages\\system.management\\8.0.0\\system.management.8.0.0.nupkg.sha512"
   ],
   "logs": []
 }
