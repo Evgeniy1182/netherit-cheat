@@ -852,13 +852,28 @@ namespace NetheritInjector
 
         private async void InjectButton_Click(object? sender, EventArgs e)
         {
-            // Проверяем истек ли ключ перед инъекцией
+            // Проверяем истек ли ключ ЛОКАЛЬНО
             if (activatedKey != null && KeySystem.IsKeyExpired(activatedKey))
             {
                 MessageBox.Show("⏰ Ваша подписка истекла!\n\nПожалуйста, активируйте новый ключ для продолжения.", 
                     "Подписка истекла", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 this.Close();
                 return;
+            }
+
+            // ВАЖНО: Проверяем ключ на СЕРВЕРЕ Supabase
+            if (activatedKey != null)
+            {
+                string hwid = SupabaseService.GetSystemHWID();
+                bool isValidOnServer = await SupabaseService.VerifyKeyAsync(activatedKey, hwid);
+                
+                if (!isValidOnServer)
+                {
+                    MessageBox.Show("⛔ Ключ недействителен или истёк на сервере!\n\nПожалуйста, активируйте новый ключ.", 
+                        "Ошибка проверки лицензии", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    this.Close();
+                    return;
+                }
             }
 
             if (string.IsNullOrEmpty(selectedDllPath) || selectedProcessId <= 0)
