@@ -44,7 +44,7 @@ namespace NetheritInjector
     public static class SupabaseService
     {
         private static readonly string SupabaseUrl = "https://boglgrhvknokfnhktsca.supabase.co";
-        private static readonly string SupabaseKey = "sb_publishable_NamiWNXv6Fhw_Yo5ISWmbg_hV3kuMw-";
+        private static readonly string SupabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZ2xncmh2a25va2ZuaGt0c2NhIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODI5NzAwMCwiZXhwIjoyMDgzODczMDAwfQ.rtSRxai-jexdLQzEfd5xG4LkJKqjG_qqz9nKLfkCR-A";
         private static readonly HttpClient client = new HttpClient();
 
         static SupabaseService()
@@ -110,12 +110,15 @@ namespace NetheritInjector
                 if (key.activated_at.HasValue && key.activation_count >= key.max_activations)
                     return false;
 
+                // Calculate expiry date
+                DateTime expiresAt = DateTime.UtcNow.AddDays(key.duration_days);
+
                 // Create activation record
                 var activation = new
                 {
                     key_id = key.id,
                     user_id = userId,
-                    expires_at = DateTime.UtcNow.AddDays(key.duration_days),
+                    expires_at = expiresAt,
                     hwid = hwid
                 };
 
@@ -127,8 +130,8 @@ namespace NetheritInjector
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Update key record
-                    await UpdateKeyActivationAsync(key.id, userId);
+                    // Update key record with expires_at
+                    await UpdateKeyActivationAsync(key.id, userId, expiresAt, key.activation_count + 1);
                     return true;
                 }
 
@@ -141,16 +144,18 @@ namespace NetheritInjector
             }
         }
 
-        // Update key activation timestamp
-        private static async Task<bool> UpdateKeyActivationAsync(string keyId, string userId)
+        // Update key activation timestamp and expiry in api_keys table
+        private static async Task<bool> UpdateKeyActivationAsync(string keyId, string userId, DateTime expiresAt, int activationCount)
         {
             try
             {
                 var update = new
                 {
                     activated_at = DateTime.UtcNow,
+                    expires_at = expiresAt,
                     user_id = userId,
-                    is_active = true
+                    is_active = true,
+                    activation_count = activationCount
                 };
 
                 string json = JsonSerializer.Serialize(update);
