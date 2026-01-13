@@ -18,6 +18,7 @@ namespace NetheritInjector
 
         public string? ValidatedKey { get; private set; }
         public int SubscriptionDays { get; private set; }
+        public DateTime? ExpiresAt { get; private set; }
 
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn(
@@ -331,7 +332,8 @@ namespace NetheritInjector
                 KeySystem.ActivateKey(key, out string _);
                 
                 ValidatedKey = key;
-                SubscriptionDays = keyData.duration_days;
+                SubscriptionDays = keyData!.duration_days;
+                ExpiresAt = keyData.expires_at;
                 
                 string durationText = keyData.duration_days == -1 ? "LIFETIME" : $"{keyData.duration_days} DAYS";
                 statusLabel.ForeColor = Color.FromArgb(100, 255, 100);

@@ -31,6 +31,7 @@ namespace NetheritInjector
         private string? selectedProcessName;
         private string? activatedKey;
         private int subscriptionDays;
+        private DateTime? serverExpiresAt;
 
         // Windows API для инжекта DLL
         [DllImport("kernel32.dll")]
@@ -94,10 +95,11 @@ namespace NetheritInjector
             this.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 25, 25));
         }
 
-        public MainForm(string key, int durationDays) : this()
+        public MainForm(string key, int durationDays, DateTime? expiresAt = null) : this()
         {
             activatedKey = key;
             subscriptionDays = durationDays;
+            serverExpiresAt = expiresAt;
             config = AppConfig.Load();
             LoadLastSettings();
             UpdateSubscriptionDisplay();
@@ -206,8 +208,20 @@ namespace NetheritInjector
         {
             if (activatedKey == null) return;
 
-            // Проверяем истек ли ключ
-            if (KeySystem.IsKeyExpired(activatedKey))
+            // Проверяем истек ли ключ (используем серверное время если есть)
+            bool isExpired = false;
+            
+            if (serverExpiresAt.HasValue)
+            {
+                isExpired = DateTime.UtcNow >= serverExpiresAt.Value;
+            }
+            else
+            {
+                // Fallback на локальную проверку
+                isExpired = KeySystem.IsKeyExpired(activatedKey);
+            }
+            
+            if (isExpired)
             {
                 subscriptionTimer?.Stop();
                 MessageBox.Show("⏰ Ваша подписка истекла!\n\nПожалуйста, активируйте новый ключ.", 
@@ -597,7 +611,18 @@ namespace NetheritInjector
                 return;
             }
 
-            long timeLeft = KeySystem.GetKeyTimeLeft(activatedKey);
+            // Используем серверное время если доступно
+            long timeLeft;
+            if (serverExpiresAt.HasValue)
+            {
+                TimeSpan remaining = serverExpiresAt.Value - DateTime.UtcNow;
+                timeLeft = (long)remaining.TotalMilliseconds;
+            }
+            else
+            {
+                // Fallback на локальную проверку
+                timeLeft = KeySystem.GetKeyTimeLeft(activatedKey);
+            }
             
             if (timeLeft <= 0)
             {
