@@ -107,14 +107,13 @@ namespace NetheritInjector
                 TextAlign = HorizontalAlignment.Center,
                 UseSystemPasswordChar = true
             };
-            // Hack to center text vertically somewhat (add padding panel if needed, but font size change helps)
             this.Controls.Add(keyTextBox);
 
             // Подложка под TextBox (для визуальной рамки)
             Panel textBoxBg = new Panel
             {
                 Size = new Size(320, 1), // Only bottom underline
-                Location = new Point(90, 195),
+                Location = new Point(90, 200),
                 BackColor = Color.Gray,
             };
             this.Controls.Add(textBoxBg);

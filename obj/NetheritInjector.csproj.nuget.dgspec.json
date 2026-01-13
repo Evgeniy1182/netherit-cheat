@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Own\\Desktop\\dll\\netherit-cheat\\NetheritInjector.csproj": {}
+    "/home/runner/work/netherit-cheat/netherit-cheat/NetheritInjector.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Own\\Desktop\\dll\\netherit-cheat\\NetheritInjector.csproj": {
+    "/home/runner/work/netherit-cheat/netherit-cheat/NetheritInjector.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Own\\Desktop\\dll\\netherit-cheat\\NetheritInjector.csproj",
+        "projectUniqueName": "/home/runner/work/netherit-cheat/netherit-cheat/NetheritInjector.csproj",
         "projectName": "NetheritInjector",
-        "projectPath": "C:\\Users\\Own\\Desktop\\dll\\netherit-cheat\\NetheritInjector.csproj",
-        "packagesPath": "C:\\Users\\Own\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Own\\Desktop\\dll\\netherit-cheat\\obj\\",
+        "projectPath": "/home/runner/work/netherit-cheat/netherit-cheat/NetheritInjector.csproj",
+        "packagesPath": "/home/runner/work/netherit-cheat/.codeql-scratch/dbs/csharp/working/packages",
+        "outputPath": "/home/runner/work/netherit-cheat/netherit-cheat/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Own\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/home/runner/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0-windows"
@@ -37,7 +37,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "10.0.100"
       },
       "frameworks": {
         "net8.0-windows7.0": {
@@ -59,6 +60,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.22, 8.0.22]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.linux-x64",
+              "version": "[8.0.22, 8.0.22]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.22, 8.0.22]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[8.0.22, 8.0.22]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
@@ -67,7 +86,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.416/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/10.0.101/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

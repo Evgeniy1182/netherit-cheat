@@ -405,20 +405,6 @@ namespace NetheritInjector
             historyToolTip.SetToolTip(historyButton, "History (Ctrl+H)");
             this.Controls.Add(historyButton);
 
-            // Process info label
-            processInfoLabel = new Label
-            {
-                Text = "",
-                Font = new Font("Segoe UI", 8),
-                ForeColor = Color.Gray,
-                AutoSize = false,
-                Size = new Size(400, 40),
-                Location = new Point(150, 240),
-                TextAlign = ContentAlignment.TopCenter,
-                BackColor = Color.Transparent
-            };
-            this.Controls.Add(processInfoLabel);
-
             // Панель для процесса
             Label processLabel = new Label
             {
@@ -450,6 +436,20 @@ namespace NetheritInjector
             Panel procLine = new Panel { Size = new Size(400, 1), Location = new Point(150, 265), BackColor = Color.FromArgb(60, 60, 60) };
             this.Controls.Add(procLine);
 
+            // Process info label - moved below the textbox to avoid overlap
+            processInfoLabel = new Label
+            {
+                Text = "",
+                Font = new Font("Segoe UI", 8),
+                ForeColor = Color.Gray,
+                AutoSize = false,
+                Size = new Size(400, 40),
+                Location = new Point(150, 270),
+                TextAlign = ContentAlignment.TopCenter,
+                BackColor = Color.Transparent
+            };
+            this.Controls.Add(processInfoLabel);
+
             Button selectProcessButton = new Button
             {
                 Text = "CHANGE PROCESS",
@@ -457,7 +457,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(160, 30),
-                Location = new Point(270, 275),
+                Location = new Point(270, 310),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
@@ -475,7 +475,7 @@ namespace NetheritInjector
                 ForeColor = Color.Gray,
                 AutoSize = false,
                 Size = new Size(700, 20),
-                Location = new Point(0, 335),
+                Location = new Point(0, 360),
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent
             };
@@ -485,7 +485,7 @@ namespace NetheritInjector
             {
                 Font = new Font("Segoe UI Light", 16),
                 Size = new Size(400, 35),
-                Location = new Point(150, 360),
+                Location = new Point(150, 385),
                 ReadOnly = true,
                 BackColor = Color.FromArgb(18, 18, 18),
                 ForeColor = Color.White,
@@ -495,7 +495,7 @@ namespace NetheritInjector
             };
             this.Controls.Add(dllTextBox);
 
-            Panel dllLine = new Panel { Size = new Size(400, 1), Location = new Point(150, 395), BackColor = Color.FromArgb(60, 60, 60) };
+            Panel dllLine = new Panel { Size = new Size(400, 1), Location = new Point(150, 420), BackColor = Color.FromArgb(60, 60, 60) };
             this.Controls.Add(dllLine);
 
             Button browseDllButton = new Button
@@ -505,7 +505,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(160, 30),
-                Location = new Point(270, 405),
+                Location = new Point(270, 430),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
@@ -523,7 +523,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(200, 50),
-                Location = new Point(250, 485),
+                Location = new Point(250, 480),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
                 Enabled = false
@@ -535,10 +535,24 @@ namespace NetheritInjector
             injectButton.Click += InjectButton_Click;
             this.Controls.Add(injectButton);
 
+            // Статус
+            Label statusLabel = new Label
+            {
+                Text = "Ready",
+                Font = new Font("Segoe UI Light", 10),
+                ForeColor = Color.Gray,
+                AutoSize = false,
+                Size = new Size(700, 20),
+                Location = new Point(0, 535),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent
+            };
+            this.Controls.Add(statusLabel);
+
             // Progress bar for injection
             injectionProgressBar = new ProgressBar
             {
-                Location = new Point(200, 545),
+                Location = new Point(200, 560),
                 Size = new Size(300, 8),
                 Style = ProgressBarStyle.Continuous,
                 Visible = false
@@ -553,39 +567,13 @@ namespace NetheritInjector
                 ForeColor = Color.Gray,
                 AutoSize = false,
                 Size = new Size(700, 20),
-                Location = new Point(0, 555),
+                Location = new Point(0, 570),
                 TextAlign = ContentAlignment.MiddleCenter,
                 BackColor = Color.Transparent
             };
             this.Controls.Add(versionLabel);
 
-            // Hotkeys hint
-            Label hotkeysLabel = new Label
-            {
-                Text = "Hotkeys: Ctrl+I (Inject) | Ctrl+H (History) | Ctrl+S (Settings)",
-                Font = new Font("Segoe UI", 7),
-                ForeColor = Color.DarkGray,
-                AutoSize = false,
-                Size = new Size(700, 15),
-                Location = new Point(0, 572),
-                TextAlign = ContentAlignment.MiddleCenter,
-                BackColor = Color.Transparent
-            };
-            this.Controls.Add(hotkeysLabel);
-
-            // Статус
-            Label statusLabel = new Label
-            {
-                Text = "Ready",
-                Font = new Font("Segoe UI Light", 10),
-                ForeColor = Color.Gray,
-                AutoSize = false,
-                Size = new Size(700, 20),
-                Location = new Point(0, 530),
-                TextAlign = ContentAlignment.MiddleCenter,
-                BackColor = Color.Transparent
-            };
-            this.Controls.Add(statusLabel);
+            // Hotkeys hint - removed as it overlaps with other elements
 
             // Таймер для анимации снежинок
             animationTimer = new System.Windows.Forms.Timer();

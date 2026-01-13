@@ -38,7 +38,7 @@ namespace NetheritInjector
         private void InitializeComponent()
         {
             this.Text = "Настройки";
-            this.Size = new Size(450, 420);
+            this.Size = new Size(450, 400);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.None;
             this.BackColor = Color.FromArgb(18, 18, 18);
@@ -165,7 +165,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(150, 40),
-                Location = new Point(50, yPos + 20),
+                Location = new Point(50, yPos + 10),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
@@ -183,7 +183,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(150, 40),
-                Location = new Point(250, yPos + 20),
+                Location = new Point(250, yPos + 10),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };

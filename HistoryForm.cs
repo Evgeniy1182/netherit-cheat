@@ -33,7 +33,7 @@ namespace NetheritInjector
         private void InitializeComponent()
         {
             this.Text = "История инъекций";
-            this.Size = new Size(800, 500);
+            this.Size = new Size(800, 480);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.None;
             this.BackColor = Color.FromArgb(18, 18, 18);
@@ -73,12 +73,13 @@ namespace NetheritInjector
                 BorderStyle = BorderStyle.FixedSingle
             };
 
+            // Total width: 760 - scrollbar (17) = 743 available
             historyListView.Columns.Add("Время", 130);
-            historyListView.Columns.Add("Процесс", 120);
-            historyListView.Columns.Add("PID", 70);
-            historyListView.Columns.Add("DLL", 280);
-            historyListView.Columns.Add("Статус", 80);
-            historyListView.Columns.Add("Сообщение", 200);
+            historyListView.Columns.Add("Процесс", 110);
+            historyListView.Columns.Add("PID", 60);
+            historyListView.Columns.Add("DLL", 220);
+            historyListView.Columns.Add("Статус", 70);
+            historyListView.Columns.Add("Сообщение", 150);
 
             this.Controls.Add(historyListView);
 
@@ -102,7 +103,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(180, 35),
-                Location = new Point(400, 420),
+                Location = new Point(380, 425),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
@@ -120,7 +121,7 @@ namespace NetheritInjector
                 ForeColor = Color.White,
                 BackColor = Color.Transparent,
                 Size = new Size(100, 35),
-                Location = new Point(590, 420),
+                Location = new Point(570, 425),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
