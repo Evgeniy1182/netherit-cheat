@@ -44,7 +44,7 @@ namespace NetheritInjector
     public static class SupabaseService
     {
         private static readonly string SupabaseUrl = "https://boglgrhvknokfnhktsca.supabase.co";
-        private static readonly string SupabaseKey = "sb_publishable_NamiWNXv6Fhw_Yo5ISWmbg_hV3kuMw-";
+        private static readonly string SupabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvZ2xncmh2a25va2ZuaGt0c2NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3NzIwNzksImV4cCI6MjA1MjM0ODA3OX0.NamiWNXv6Fhw_Yo5ISWmbg_hV3kuMw-9ueY9y0gWk-I";
         private static readonly HttpClient client = new HttpClient();
 
         static SupabaseService()
