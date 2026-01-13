@@ -256,78 +256,97 @@ namespace NetheritInjector
             return path;
         }
 
-        private void LoginButton_Click(object? sender, EventArgs e)
+        private async void LoginButton_Click(object? sender, EventArgs e)
         {
             string key = keyTextBox.Text.Trim();
             
-            if (KeySystem.ValidateKey(key, out int durationDays))
+            if (string.IsNullOrEmpty(key))
             {
-                // Пытаемся активировать ключ
-                if (KeySystem.ActivateKey(key, out string message))
+                statusLabel.ForeColor = Color.FromArgb(255, 80, 80);
+                statusLabel.Text = "❌ ENTER A KEY";
+                ShakeWindow();
+                return;
+            }
+
+            loginButton.Enabled = false;
+            statusLabel.Text = "⏳ VERIFYING ON SERVER...";
+            statusLabel.ForeColor = Color.Gray;
+
+            try
+            {
+                // Проверяем ключ на Supabase
+                var keyData = await SupabaseService.GetKeyByCodeAsync(key);
+                
+                if (keyData == null)
                 {
-                    ValidatedKey = key;
-                    SubscriptionDays = durationDays;
-                    
-                    string durationText = KeySystem.GetDurationText(durationDays);
-                    statusLabel.ForeColor = Color.FromArgb(100, 255, 100);
-                    statusLabel.Text = $"✓ KEY ACTIVATED - {durationText}";
-                    
-                    // Небольшая задержка перед открытием MainForm
-                    System.Threading.Tasks.Task.Delay(800).ContinueWith(_ => 
-                    {
-                        this.Invoke((Action)(() =>
-                        {
-                            this.DialogResult = DialogResult.OK;
-                            this.Close();
-                        }));
-                    });
+                    statusLabel.ForeColor = Color.FromArgb(255, 80, 80);
+                    statusLabel.Text = "❌ INVALID KEY - NOT FOUND";
+                    keyTextBox.BackColor = Color.FromArgb(60, 20, 20);
+                    ShakeWindow();
+                    loginButton.Enabled = true;
+                    return;
                 }
-                else if (KeySystem.IsKeyExpired(key))
+
+                if (!keyData.is_active)
+                {
+                    statusLabel.ForeColor = Color.FromArgb(255, 80, 80);
+                    statusLabel.Text = "❌ KEY DEACTIVATED";
+                    keyTextBox.BackColor = Color.FromArgb(60, 20, 20);
+                    ShakeWindow();
+                    loginButton.Enabled = true;
+                    return;
+                }
+
+                // Проверяем не истек ли ключ
+                if (keyData.expires_at.HasValue && keyData.expires_at.Value < DateTime.UtcNow)
                 {
                     statusLabel.ForeColor = Color.FromArgb(255, 80, 80);
                     statusLabel.Text = "❌ KEY EXPIRED";
                     keyTextBox.BackColor = Color.FromArgb(60, 20, 20);
                     ShakeWindow();
+                    loginButton.Enabled = true;
+                    return;
                 }
-                else
+
+                // Если ключ не активирован - активируем
+                if (!keyData.activated_at.HasValue)
                 {
-                    // Ключ уже активирован, проверяем не истек ли
-                    long timeLeft = KeySystem.GetKeyTimeLeft(key);
-                    if (timeLeft > 0)
-                    {
-                        ValidatedKey = key;
-                        SubscriptionDays = durationDays;
-                        
-                        string timeText = KeySystem.FormatTimeLeft(timeLeft);
-                        statusLabel.ForeColor = Color.FromArgb(100, 255, 100);
-                        statusLabel.Text = $"✓ KEY ACCEPTED - {timeText} left";
-                        
-                        System.Threading.Tasks.Task.Delay(800).ContinueWith(_ => 
-                        {
-                            this.Invoke((Action)(() =>
-                            {
-                                this.DialogResult = DialogResult.OK;
-                                this.Close();
-                            }));
-                        });
-                    }
-                    else
+                    string hwid = SupabaseService.GetSystemHWID();
+                    bool activated = await SupabaseService.ActivateKeyAsync(key, keyData.user_id, hwid);
+                    
+                    if (!activated)
                     {
                         statusLabel.ForeColor = Color.FromArgb(255, 80, 80);
-                        statusLabel.Text = "❌ KEY EXPIRED";
-                        keyTextBox.BackColor = Color.FromArgb(60, 20, 20);
+                        statusLabel.Text = "❌ ACTIVATION FAILED";
                         ShakeWindow();
+                        loginButton.Enabled = true;
+                        return;
                     }
+                    
+                    // Обновляем данные ключа после активации
+                    keyData = await SupabaseService.GetKeyByCodeAsync(key);
                 }
+
+                // Сохраняем ключ локально для офлайн проверок
+                KeySystem.ActivateKey(key, out string _);
+                
+                ValidatedKey = key;
+                SubscriptionDays = keyData.duration_days;
+                
+                string durationText = keyData.duration_days == -1 ? "LIFETIME" : $"{keyData.duration_days} DAYS";
+                statusLabel.ForeColor = Color.FromArgb(100, 255, 100);
+                statusLabel.Text = $"✓ KEY ACTIVATED - {durationText}";
+                
+                // Небольшая задержка перед открытием MainForm
+                await System.Threading.Tasks.Task.Delay(800);
+                this.DialogResult = DialogResult.OK;
+                this.Close();
             }
-            else
+            catch (Exception ex)
             {
                 statusLabel.ForeColor = Color.FromArgb(255, 80, 80);
-                statusLabel.Text = "❌ INVALID KEY";
-                keyTextBox.BackColor = Color.FromArgb(60, 20, 20);
-                
-                // Простая анимация ошибки (тряска)
-                ShakeWindow();
+                statusLabel.Text = $"❌ ERROR: {ex.Message}";
+                loginButton.Enabled = true;
             }
         }
 
